@@ -1,0 +1,12 @@
+# Create project directory
+mkdir node-auth-server
+cd node-auth-server
+
+# Initialize npm
+npm init -y
+
+# Install core dependencies
+npm install express mongoose bcryptjs jsonwebtoken passport passport-local passport-google-oauth20 passport-facebook passport-apple passport-line cookie-parser cors dotenv helmet express-rate-limit express-validator morgan nodemailer twilio redis
+
+# Install development dependencies
+npm install -D nodemon nodemon jest
