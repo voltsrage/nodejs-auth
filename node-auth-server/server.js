@@ -2,12 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import globalErrorHandler from "./controllers/error.js";
 import cookieParser from 'cookie-parser';
 import passport from 'passport';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import {fileURLToPath} from 'url';
+import { fileURLToPath } from 'url';
 import path from 'path';
 
 // Load environment variables from .env file
@@ -62,26 +61,26 @@ setupGlobalErrorHandling(app);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-let server =  app.listen(PORT, () => {
+let server = app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
 
-    
+
 });
 
 // Log unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-    console.log(err.name, err.message);
-        console.log("UNHANDLED REJECTION! 💥 Shutting down...");
-        server.close(() => {
-        process.exit(1);
-    });
+  console.log(err.name, err.message);
+  console.log("UNHANDLED REJECTION! 💥 Shutting down...");
+  server.close(() => {
+    process.exit(1);
+  });
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-    console.log(err.name, err.message);
-        console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
-        server.close(() => {
-        process.exit(1);
-    });
+  console.log(err.name, err.message);
+  console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
+  server.close(() => {
+    process.exit(1);
+  });
 });
