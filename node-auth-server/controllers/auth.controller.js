@@ -370,7 +370,7 @@ export const refreshToken = async (req, res, next) => {
  */
 export const sendVerificationEmail = async (req, res, next) => {
     try {
-        const { userId } = req.params;
+        const { userId } = req.query;
 
         // Find user
         const user = await User.findById(userId);

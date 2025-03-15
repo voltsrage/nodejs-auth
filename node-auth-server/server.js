@@ -17,6 +17,7 @@ import connectDB from './config/db.js';
 
 // Import routes
 import authRoutes from './routes/auth.routes.js';
+import oauthRoutes from './routes/oauth.routes.js';
 
 // Import error handler
 import setupGlobalErrorHandling from './middleware/globalErrorMiddleware.js';
@@ -57,6 +58,7 @@ app.use(passport.initialize());
 
 // Register routes
 app.use('/api/auth', authRoutes);
+app.use('/api/oauth', oauthRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
