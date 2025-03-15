@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlock Your Account</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo {
+      max-width: 150px;
+      margin-bottom: 20px;
+    }
+    .content {
+      background-color: #f7f9fc;
+      border-radius: 5px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    .unlock-button {
+      display: inline-block;
+      background-color: #4f46e5;
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 30px;
+    }
+    .divider {
+      border-top: 1px solid #eaeaea;
+      margin: 20px 0;
+    }
+    .security-note {
+      background-color: #fffaf0;
+      border-left: 4px solid #f6ad55;
+      padding: 15px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="https://via.placeholder.com/150x50?text=YourLogo" alt="Logo" class="logo">
+    <h1>Unlock Your Account</h1>
+  </div>
+  
+  <div class="content">
+    <p>Your account has been locked due to too many failed login attempts. This is a security measure to protect your account.</p>
+    
+    <p>To unlock your account, please click the button below:</p>
+    
+    <div style="text-align: center;">
+      <a href="{{unlockUrl}}" class="unlock-button">Unlock My Account</a>
+    </div>
+    
+    <p>Or copy and paste this URL into your browser:</p>
+    <p style="word-break: break-all;">{{unlockUrl}}</p>
+    
+    <div class="divider"></div>
+    
+    <p><strong>This link will expire in 10 minutes.</strong></p>
+    
+    <div class="security-note">
+      <p><strong>Security Notice:</strong> If you didn't attempt to log in or unlock your account, please contact our support team immediately, as someone may be trying to access your account.</p>
+    </div>
+    
+    <p>After unlocking your account, we recommend:</p>
+    <ul>
+      <li>Changing your password</li>
+      <li>Enabling two-factor authentication if available</li>
+      <li>Checking your account for any suspicious activity</li>
+    </ul>
+  </div>
+  
+  <div class="footer">
+    <p>If you're having trouble with the button above, copy and paste the URL into your web browser.</p>
+    <p>For help, contact us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+    <p>&copy; {{year}} Your Company. All rights reserved.</p>
+  </div>
+</body>
+</html>

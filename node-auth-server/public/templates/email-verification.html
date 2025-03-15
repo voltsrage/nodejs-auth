@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email Address</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .logo {
+      max-width: 150px;
+      margin-bottom: 20px;
+    }
+    .content {
+      background-color: #f7f9fc;
+      border-radius: 5px;
+      padding: 30px;
+      margin-bottom: 30px;
+    }
+    .verify-button {
+      display: inline-block;
+      background-color: #4f46e5;
+      color: white;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 4px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 30px;
+    }
+    .divider {
+      border-top: 1px solid #eaeaea;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="https://via.placeholder.com/150x50?text=YourLogo" alt="Logo" class="logo">
+    <h1>Verify Your Email Address</h1>
+  </div>
+  
+  <div class="content">
+    <p>Thank you for signing up! Please verify your email address to complete your registration.</p>
+    
+    <p>Click the button below to verify your email address:</p>
+    
+    <div style="text-align: center;">
+      <a href="{{verificationUrl}}" class="verify-button">Verify Email Address</a>
+    </div>
+    
+    <p>Or copy and paste this URL into your browser:</p>
+    <p style="word-break: break-all;">{{verificationUrl}}</p>
+    
+    <div class="divider"></div>
+    
+    <p><strong>This link will expire in 24 hours.</strong></p>
+    <p>If you did not create an account, please ignore this email.</p>
+  </div>
+  
+  <div class="footer">
+    <p>If you're having trouble with the button above, copy and paste the URL into your web browser.</p>
+    <p>For help, contact us at <a href="mailto:{{supportEmail}}">{{supportEmail}}</a></p>
+    <p>&copy; {{year}} Your Company. All rights reserved.</p>
+  </div>
+</body>
+</html>
