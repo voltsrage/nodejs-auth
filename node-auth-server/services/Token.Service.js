@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import moment from 'moment';
-import Token from '../models/Token.Model';
+import Token from '../models/Token.Model.js';
 
 /**
  * Generate JWT token

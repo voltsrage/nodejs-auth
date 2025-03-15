@@ -16,6 +16,7 @@ dotenv.config();
 import connectDB from './config/db.js';
 
 // Import routes
+import authRoutes from './routes/auth.routes.js';
 
 // Import error handler
 import setupGlobalErrorHandling from './middleware/globalErrorMiddleware.js';
@@ -36,6 +37,8 @@ app.use(helmet());
 app.use(cors({
   origin: process.env.CORS_ORIGIN,
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Set up passport middleware
@@ -48,7 +51,12 @@ app.use(cookieParser());
 // Loggin middleware
 app.use(morgan(process.env.NODE_ENV === 'development' ? 'dev' : 'combined'));
 
+// Initialize and configure Passport
+import './config/passport.js';
+app.use(passport.initialize());
+
 // Register routes
+app.use('/api/auth', authRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

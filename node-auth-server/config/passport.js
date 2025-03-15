@@ -4,8 +4,8 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as AppleStrategy } from 'passport-apple';
 import { Strategy as LineStrategy } from 'passport-line';
-import User from '../models/user';
-import AppError from '../utils/appError';
+import User from '../models/User.js';
+import AppError from "../utils/AppError.js";
 
 // Configure Local Strategy for username/password authentication
 passport.use(
