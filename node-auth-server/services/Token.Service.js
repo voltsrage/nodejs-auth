@@ -25,6 +25,40 @@ export const verifyToken = (token, secret = process.env.JWT_SECRET) => {
 };
 
 /**
+ * Parse duration string to milliseconds
+ * @param {string} durationStr - Duration string (e.g., '15m', '1d', '7d')
+ * @returns {number} Milliseconds
+ */
+export const parseDuration = (durationStr) => {
+    const match = durationStr.match(/^(\d+)([smhdwy])$/);
+    if (!match) return 0;
+
+    const value = parseInt(match[1]);
+    const unit = match[2];
+
+    const msMap = {
+        s: 1000,                // second
+        m: 60 * 1000,           // minute
+        h: 60 * 60 * 1000,      // hour
+        d: 24 * 60 * 60 * 1000, // day
+        w: 7 * 24 * 60 * 60 * 1000, // week
+        y: 365 * 24 * 60 * 60 * 1000 // year (approximation)
+    };
+
+    return value * msMap[unit];
+};
+
+/**
+ * Calculate expiry date from a duration string
+ * @param {string} durationStr - Duration string (e.g., '15m', '1d', '7d')
+ * @returns {Date} Expiry date
+ */
+export const calculateExpiryDate = (durationStr) => {
+    const ms = parseDuration(durationStr);
+    return new Date(Date.now() + ms);
+};
+
+/**
  * Generate auth tokens (access & refresh)
  * @param {Object} user - User object
  * @param {string} userAgent - User agent from request
@@ -45,26 +79,25 @@ export const generateAuthTokens = async (user, userAgent, ipAddress) => {
         type: 'refresh',
     };
 
-    // Calculate expiry times
-    const accessTokenExpires = moment().add(
-        process.env.JWT_ACCESS_EXPIRATION || '15m'
-    );
+    // Get expiration times from env variables
+    const accessExpiration = process.env.JWT_ACCESS_EXPIRATION || '15m';
+    const refreshExpiration = process.env.JWT_REFRESH_EXPIRATION || '7d';
 
-    const refreshTokenExpires = moment().add(
-        process.env.JWT_REFRESH_EXPIRATION || '7d'
-    );
+    // Calculate expiry times
+    const accessTokenExpires = calculateExpiryDate(accessExpiration);
+    const refreshTokenExpires = calculateExpiryDate(refreshExpiration);
 
     // Generate tokens
     const accessToken = generateToken(
         accessTokenPayload,
         process.env.JWT_SECRET,
-        process.env.JWT_ACCESS_EXPIRATION
+        accessExpiration
     );
 
     const refreshToken = generateToken(
         refreshTokenPayload,
         process.env.JWT_SECRET,
-        process.env.JWT_REFRESH_EXPIRATION
+        refreshExpiration
     );
 
     // Save refresh token in database
@@ -72,7 +105,7 @@ export const generateAuthTokens = async (user, userAgent, ipAddress) => {
         refreshToken,
         user._id,
         'refresh',
-        refreshTokenExpires.toDate(),
+        refreshTokenExpires,
         userAgent,
         ipAddress
     );
@@ -80,11 +113,11 @@ export const generateAuthTokens = async (user, userAgent, ipAddress) => {
     return {
         access: {
             token: accessToken,
-            expires: accessTokenExpires.toDate(),
+            expires: accessTokenExpires,
         },
         refresh: {
             token: refreshToken,
-            expires: refreshTokenExpires.toDate(),
+            expires: refreshTokenExpires,
         },
     };
 };
@@ -96,13 +129,13 @@ export const generateAuthTokens = async (user, userAgent, ipAddress) => {
  */
 export const generateResetPasswordToken = async (userId) => {
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = moment().add(
-        process.env.JWT_RESET_PASSWORD_EXPIRATION || '10m'
-    ).toDate();
+    const expiration = process.env.JWT_RESET_PASSWORD_EXPIRATION || '10m';
+    const expires = calculateExpiryDate(expiration);
 
     await saveToken(token, userId, 'resetPassword', expires);
     return token;
 };
+
 
 /**
  * Generate email verification token
@@ -111,9 +144,12 @@ export const generateResetPasswordToken = async (userId) => {
  */
 export const generateVerifyEmailToken = async (userId) => {
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = moment().add(
-        process.env.JWT_VERIFY_EMAIL_EXPIRATION || '1d'
-    ).toDate();
+    const expiration = process.env.JWT_VERIFY_EMAIL_EXPIRATION || '1d';
+    const expires = calculateExpiryDate(expiration);
+
+    console.log('moment:', moment());
+    console.log('process.env.JWT_VERIFY_EMAIL_EXPIRATION:', process.env.JWT_VERIFY_EMAIL_EXPIRATION);
+    console.log('Token:', expires);
 
     await saveToken(token, userId, 'verifyEmail', expires);
     return token;
@@ -127,7 +163,7 @@ export const generateVerifyEmailToken = async (userId) => {
 export const generateVerifySmsToken = async (userId) => {
     // Generate a 6-digit code
     const token = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = moment().add('10m').toDate(); // 10 minutes expiry
+    const expires = calculateExpiryDate('10m');  // 10 minutes expiry
 
     await saveToken(token, userId, 'verifySms', expires);
     return token;

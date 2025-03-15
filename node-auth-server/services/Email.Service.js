@@ -1,9 +1,10 @@
 import nodemailer from 'nodemailer';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import handlebars from 'handlebars';
 import AppError from '../utils/AppError.js';
+import { existsSync, mkdirSync } from 'fs';
 
 // Get directory path in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,7 @@ const __dirname = path.dirname(__filename);
  * @returns {nodemailer.Transporter} Nodemailer transport
  */
 const createTransport = () => {
+    console.log('process.env.NODE_ENV', process.env.NODE_ENV);
     // For production
     if (process.env.NODE_ENV === 'production') {
         return nodemailer.createTransport({
@@ -27,16 +29,37 @@ const createTransport = () => {
         });
     }
 
-    // For development - use Ethereal (fake SMTP service)
-    return nodemailer.createTransport({
-        host: 'smtp.ethereal.email',
-        port: 587,
-        secure: false,
-        auth: {
-            user: process.env.ETHEREAL_USERNAME || 'ethereal.user@ethereal.email',
-            pass: process.env.ETHEREAL_PASSWORD || 'ethereal_password',
-        },
-    });
+    // For development - use Ethereal (fake SMTP service) or console
+    if (process.env.ETHEREAL_USERNAME && process.env.ETHEREAL_PASSWORD) {
+        console.log('ETHEREAL_USERNAME', process.env.ETHEREAL_USERNAME);
+        console.log('ETHEREAL_PASSWORD', process.env.ETHEREAL_PASSWORD);
+        return nodemailer.createTransport({
+            host: 'smtp.ethereal.email',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.ETHEREAL_USERNAME,
+                pass: process.env.ETHEREAL_PASSWORD,
+            },
+            tls: {
+                // Do not fail on invalid certificates
+                rejectUnauthorized: false
+            }
+        });
+    }
+
+    // Fallback for development: log to console
+    return {
+        sendMail: (options) => {
+            console.log('=============== EMAIL ===============');
+            console.log('To:', options.to);
+            console.log('Subject:', options.subject);
+            console.log('Text:', options.text?.substring(0, 100) + '...');
+            console.log('HTML:', options.html?.substring(0, 100) + '...');
+            console.log('====================================');
+            return Promise.resolve({ messageId: 'console-log-' + Date.now() });
+        }
+    };
 };
 
 /**
@@ -46,9 +69,66 @@ const createTransport = () => {
  */
 const getEmailTemplate = async (templateName) => {
     try {
-        const templatePath = path.join(__dirname, '../public/templates', `${templateName}.html`);
-        const templateSource = await fs.readFile(templatePath, 'utf-8');
-        return handlebars.compile(templateSource);
+        // Create template directory if it doesn't exist
+        const templatesDir = path.join(__dirname, '../public/templates');
+
+        try {
+            fs.access(templatesDir);
+        } catch (error) {
+            // If directory doesn't exist, create it
+            fs.mkdir(templatesDir, { recursive: true });
+        }
+
+        const templatePath = path.join(templatesDir, `${templateName}.html`);
+
+        try {
+            // Try to read the template file
+            const templateSource = await fs.readFile(templatePath, 'utf-8');
+           
+            return handlebars.compile(templateSource);
+        } catch (error) {
+            // If template file doesn't exist, use a default template
+            return handlebars.compile(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; }
+              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+              .header { text-align: center; margin-bottom: 20px; }
+              .content { background-color: #f7f7f7; padding: 20px; border-radius: 5px; }
+              .button { display: inline-block; background-color: #4CAF50; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; }
+              .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #777; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <div class="header">
+                <h1>{{title}}</h1>
+              </div>
+              <div class="content">
+                {{#if message}}
+                  <p>{{message}}</p>
+                {{else}}
+                  <p>Thank you for using our service.</p>
+                {{/if}}
+                
+                {{#if actionUrl}}
+                  <p style="text-align: center;">
+                    <a href="{{actionUrl}}" class="button">{{actionText}}</a>
+                  </p>
+                  <p>If the button above doesn't work, copy and paste this URL into your browser:</p>
+                  <p>{{actionUrl}}</p>
+                {{/if}}
+              </div>
+              <div class="footer">
+                <p>&copy; {{year}} Your Company. All rights reserved.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `);
+        }
     } catch (error) {
         console.error(`Error loading email template "${templateName}":`, error);
         throw new AppError('Failed to load email template', 500);
@@ -87,7 +167,8 @@ export const sendEmail = async (options) => {
         const info = await transport.sendMail(mailOptions);
 
         // Log email URL in development (Ethereal)
-        if (process.env.NODE_ENV === 'development') {
+        // Log email URL in development (Ethereal)
+        if (process.env.NODE_ENV === 'development' && info.messageId && info.messageId.includes('ethereal')) {
             console.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
         }
 

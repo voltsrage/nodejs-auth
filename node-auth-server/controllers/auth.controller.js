@@ -22,10 +22,10 @@ export const register = catchAsync(async (req, res, next) => {
     }
 
     // Create a new user
-    const user = new User.create({ email, password, username, firstName, lastName, phoneNumber });
+    const user = await User.create({ email, password, username, firstName, lastName, phoneNumber });
 
     // Generate a verification token
-    const verificationToken = tokenService.generateVerifyEmailToken(user._id);
+    const verificationToken = await tokenService.generateVerifyEmailToken(user._id);
 
     // Send verification email
     await emailService.sendVerificationEmail(user.email, verificationToken);
@@ -70,7 +70,7 @@ export const getCurrentUser = catchAsync(async (req, res, next) => {
 
         const user = await User.findById(userId).select('-password');
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         res.status(200).json({
@@ -289,13 +289,13 @@ export const logout = async (req, res, next) => {
         // Get refresh token from request
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            throw createError(400, 'Refresh token is required');
+            return next(new AppError(400, 'Refresh token is required'));
         }
 
         // Find token in database
         const token = await tokenService.findToken(refreshToken, 'refresh');
         if (!token) {
-            throw createError(404, 'Token not found');
+            return next(new AppError(404, 'Token not found'));
         }
 
         // Blacklist token
@@ -317,7 +317,7 @@ export const refreshToken = async (req, res, next) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            throw createError(400, 'Refresh token is required');
+            return next(new AppError(400, 'Refresh token is required'));
         }
 
         // Verify token
@@ -325,19 +325,19 @@ export const refreshToken = async (req, res, next) => {
         try {
             payload = tokenService.verifyToken(refreshToken);
         } catch (error) {
-            throw createError(401, 'Invalid or expired refresh token');
+            return next(new AppError(401, 'Invalid or expired refresh token'));
         }
 
         // Find token in database
         const token = await tokenService.findToken(refreshToken, 'refresh');
         if (!token) {
-            throw createError(404, 'Token not found');
+            return next(new AppError(404, 'Token not found'));
         }
 
         // Find user
         const user = await User.findById(payload.sub);
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         // Generate new tokens
@@ -375,12 +375,12 @@ export const sendVerificationEmail = async (req, res, next) => {
         // Find user
         const user = await User.findById(userId);
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         // Check if email is already verified
         if (user.isEmailVerified) {
-            throw createError(400, 'Email already verified');
+            return next(new AppError(400, 'Email already verified'));
         }
 
         // Generate verification token
@@ -408,7 +408,7 @@ export const verifyEmail = async (req, res, next) => {
         // Find token in database
         const tokenDoc = await tokenService.findToken(token, 'verifyEmail');
         if (!tokenDoc) {
-            throw createError(404, 'Token not found or expired');
+            return next(new AppError(404, 'Token not found or expired'));
         }
 
         // Find and update user
@@ -419,7 +419,7 @@ export const verifyEmail = async (req, res, next) => {
         );
 
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         // Delete token
@@ -474,13 +474,13 @@ export const resetPassword = async (req, res, next) => {
         // Find token in database
         const tokenDoc = await tokenService.findToken(token, 'resetPassword');
         if (!tokenDoc) {
-            throw createError(404, 'Token not found or expired');
+            return next(new AppError(404, 'Token not found or expired'));
         }
 
         // Find user
         const user = await User.findById(tokenDoc.user);
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         // Update password
@@ -513,18 +513,18 @@ export const changePassword = async (req, res, next) => {
         // Find user
         const user = await User.findById(userId);
         if (!user) {
-            throw createError(404, 'User not found');
+            return next(new AppError(404, 'User not found'));
         }
 
         // Check if user has password (might not if they use OAuth)
         if (!user.password) {
-            throw createError(400, 'Cannot change password for OAuth accounts');
+            return next(new AppError(400, 'Cannot change password for OAuth accounts'));
         }
 
         // Verify current password
         const isPasswordValid = await user.comparePassword(currentPassword);
         if (!isPasswordValid) {
-            throw createError(401, 'Current password is incorrect');
+            return next(new AppError(401, 'Current password is incorrect'));
         }
 
         // Update password
